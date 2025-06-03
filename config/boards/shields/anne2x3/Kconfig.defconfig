@@ -24,12 +24,5 @@ if SHIELD_ANNE2X3
   # config BT_BAS
   #   default y
 
-  # 5) Si no quieres USB-HID (solo BLE)
-  config ZMK_USB_NONE
-    default y
-
-  # 6) Optimizaciones de tamaño
-  config SIZE_OPTIMIZATIONS
-    default y
 
 endif
