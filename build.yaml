@@ -20,4 +20,4 @@
 ---
 include:
   - board: nice_nano_v2
-    shield: Anne2x3
+    shield: anne2x3
