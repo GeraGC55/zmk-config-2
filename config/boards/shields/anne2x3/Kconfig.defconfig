@@ -1,0 +1,35 @@
+# config/boards/shields/anne2x3/Kconfig.defconfig
+
+if SHIELD_ANNE2X3
+
+  # 1) Habilitar Bluetooth en Zephyr/ZMK
+  config BT
+    default y
+
+  config BT_PERIPHERAL
+    default y
+
+  # 2) Habilitar a ZMK como teclado BLE
+  config ZMK_BLE
+    default y
+
+  config ZMK_BLE_CLEAR_BONDS_ON_START
+    default y
+
+  # 3) Definir el nombre que se verá en publicidad BLE
+  config ZMK_KEYBOARD_NAME
+    default "anne2x3"
+
+  # 4) (Opcional) Servicio de batería por BLE
+  # config BT_BAS
+  #   default y
+
+  # 5) Si no quieres USB-HID (solo BLE)
+  config ZMK_USB_NONE
+    default y
+
+  # 6) Optimizaciones de tamaño
+  config SIZE_OPTIMIZATIONS
+    default y
+
+endif
