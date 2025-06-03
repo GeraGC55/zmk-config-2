@@ -1,2 +1,2 @@
 config SHIELD_ANNE2X3
-    def_bool $(shields_list_contains, Anne2x3)
+    def_bool $(shields_list_contains, anne2x3)
