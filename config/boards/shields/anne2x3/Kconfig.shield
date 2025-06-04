@@ -1,2 +1,3 @@
 config SHIELD_ANNE2X3
     bool "anne2x3"
+    default y
