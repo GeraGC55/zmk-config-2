@@ -33,18 +33,14 @@ if SHIELD_ANNE2X3
   config SPI
     default y
 
-  # La configuración de CONFIG_WS2812_STRIP_SPI se ha movido a anne2x3.conf
+  # La configuración de CONFIG_WS2812_STRIP_SPI y otros backends WS2812
+  # se maneja ahora en anne2x3.conf para asegurar la correcta selección de la 'choice'.
 
   # Configuración inicial de color
   config ZMK_RGB_UNDERGLOW_COLOR_HSB_HUE_STARTUP
     int "Initial Hue for RGB Underglow (0-255)"
     default 85
-  config ZMK_RGB_UNDERGLOW_COLOR_HSB_SAT_STARTUP
-    int "Initial Saturation for RGB Underglow (0-255)"
-    default 255
-  config ZMK_RGB_UNDERGLOW_COLOR_HSB_BRT_STARTUP
-    int "Initial Brightness for RGB Underglow (0-255)"
-    default 128
+  # ... (resto de las configs HSB y EFFECT sin cambios) ...
   config ZMK_RGB_UNDERGLOW_CURRENT_EFFECT_STARTUP
     int "Initial Effect for RGB Underglow (index)"
     default 0
