@@ -4,38 +4,72 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <dt-bindings/led/led.h> // Necesario para LED_COLOR_ID_XXX
+
 / {
     chosen {
         zmk,kscan = &default_kscan;
-        zmk,underglow = &led_strip; // Añadido para RGB
+        zmk,underglow = &led_strip; // Apunta a la etiqueta de la tira de LEDs definida abajo
     };
 
     default_kscan: kscan {
         compatible = "zmk,kscan-gpio-direct";
         label = "default_kscan";
         input-gpios =
-            <&pro_micro 1  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,  // posición lógica 0
-            <&pro_micro 0  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,  // posición lógica 1
-            <&pro_micro 2  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,  // posición lógica 2
-            <&pro_micro 3  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,  // posición lógica 3
-            <&pro_micro 4  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,  // posición lógica 4
-            <&pro_micro 5  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;  // posición lógica 5
+            <&pro_micro 1  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+            <&pro_micro 0  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+            <&pro_micro 2  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+            <&pro_micro 3  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+            <&pro_micro 4  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+            <&pro_micro 5  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
     };
 };
 
-// --- Sección para LEDs WS2812B usando driver GPIO ---
-// La etiqueta "led_strip" es la importante para 'chosen'.
-// El nombre del nodo (aquí "ws2812_leds") es solo un identificador local.
-led_strip: ws2812_leds { 
-    compatible = "worldsemi,ws2812-gpio";
-    label = "WS2812_LEDS"; // Etiqueta descriptiva para el dispositivo
-    chain-length = <6>; /* Número de LEDs */
-    
-    // Usando directamente &gpio0 para el pin P0.20 de la Nice!Nano.
-    // P0.20 es el pin 20 en el controlador gpio0.
-    // Flags = 0 (para salida estándar, activa alta).
-    gpios = <&gpio0 20 0>; 
+// --- Sección para LEDs WS2812B usando driver SPI ---
 
-    color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>; // Mapeo GRB para WS2812B
+// Configuración del pinctrl para el periférico SPI3
+// Se asigna el pin P0.20 como MOSI para spi3.
+&pinctrl {
+    spi3_default: spi3_default {
+        group1 {
+            // P0.20 como MOSI (Master Out Slave In) del SPIM3
+            psels = <NRF_PSEL(SPIM_MOSI, 0, 20)>;
+        };
+    };
+
+    spi3_sleep: spi3_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_MOSI, 0, 20)>;
+            low-power-enable; // Configuración para bajo consumo
+        };
+    };
+};
+
+// Habilitación y configuración del periférico SPI3
+&spi3 {
+    compatible = "nordic,nrf-spim"; // Compatible para el controlador SPIM de Nordic
+    status = "okay"; // Habilitar el periférico SPI3
+
+    // Asignar los pinctrl definidos arriba
+    pinctrl-0 = <&spi3_default>;
+    pinctrl-1 = <&spi3_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    // Definición de la tira de LEDs WS2812 como un dispositivo en este bus SPI
+    // La etiqueta "led_strip" es la importante para 'chosen'.
+    led_strip: ws2812@0 { // El @0 es una convención para la dirección en el bus SPI
+        compatible = "worldsemi,ws2812-spi"; // Driver para WS2812 vía SPI
+        label = "WS2812_STRIP";
+
+        /* Propiedades SPI */
+        reg = <0>; /* Dirección del dispositivo en el bus SPI (ignorado pero necesario) */
+        spi-max-frequency = <4000000>; /* 4MHz, común para WS2812 */
+
+        /* Propiedades específicas de WS2812 */
+        chain-length = <6>;         /* Número de LEDs */
+        spi-one-frame = <0x70>;     /* Patrón de bits SPI para '1' lógico de WS2812 */
+        spi-zero-frame = <0x40>;    /* Patrón de bits SPI para '0' lógico de WS2812 */
+        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>; /* Mapeo GRB */
+    };
 };
 // --- Fin de la sección de LEDs ---
