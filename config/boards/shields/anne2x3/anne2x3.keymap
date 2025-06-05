@@ -1,10 +1,17 @@
+/*
+ * Copyright (c) 2024 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/rgb.h> // Añadido para controles RGB
+
 / {
     keymap {
         compatible = "zmk,keymap";
-
         default_layer {
             bindings = <
                 &kp PG_UP   &kp UP    &kp PG_DN
@@ -15,17 +22,19 @@
 
     combos {
         compatible = "zmk,combos";
-
         pairing_combo {
           timeout-ms = <50>;
-           key-positions = <0 1>;  // tecla 1 + tecla 2
+           key-positions = <0 1>; // tecla 1 + tecla 2
           bindings = <&bt BT_CLR_ALL>;
-};
-
-
+        };
+        rgb_effect_combo { // Combo para RGB_EFF
+            timeout-ms = <50>;
+            key-positions = <1 2>; // Teclas lógicas 1 y 2 (físicas 2 y 3)
+            bindings = <&rgb_ug RGB_EFF>; // Ciclar efectos RGB
+        };
         bootloader_combo {
             timeout-ms = <50>;
-            key-positions = <0 2>;  // Tecla 1 + Tecla 3
+            key-positions = <0 2>; // Tecla 1 + Tecla 3
             bindings = <&bootloader>;
         };
     };

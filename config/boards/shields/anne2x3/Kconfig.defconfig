@@ -24,5 +24,25 @@ if SHIELD_ANNE2X3
   # config BT_BAS
   #   default y
 
+  # --- Configuración RGB ---
+  config ZMK_RGB_UNDERGLOW
+    default y
+
+  # Habilitar el driver PWM para WS2812
+  config PWM
+    default y
+  config WS2812_STRIP_PWM
+    default y
+
+  # Configuración inicial de color (Verde: H=85, S=255, B=128)
+  config ZMK_RGB_UNDERGLOW_COLOR_HSB_HUE_STARTUP
+    default 85
+  config ZMK_RGB_UNDERGLOW_COLOR_HSB_SAT_STARTUP
+    default 255
+  config ZMK_RGB_UNDERGLOW_COLOR_HSB_BRT_STARTUP
+    default 128 # Ajusta este valor para el brillo inicial (0-255)
+  config ZMK_RGB_UNDERGLOW_CURRENT_EFFECT_STARTUP
+    default 0 # 0 es usualmente el efecto de color sólido
+  # --- Fin de la configuración RGB ---
 
 endif
