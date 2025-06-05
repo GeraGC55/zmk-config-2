@@ -24,16 +24,17 @@
 };
 
 // --- Sección para LEDs WS2812B usando driver GPIO ---
-led_strip: ws2812_gpio { // Cambiado el nombre del nodo para claridad, pero "led_strip" es el importante para chosen
+// La etiqueta "led_strip" es la importante para 'chosen'.
+// El nombre del nodo (aquí "ws2812_leds") es solo un identificador local.
+led_strip: ws2812_leds { 
     compatible = "worldsemi,ws2812-gpio";
-    label = "WS2812_GPIO";
+    label = "WS2812_LEDS"; // Etiqueta descriptiva para el dispositivo
     chain-length = <6>; /* Número de LEDs */
     
-    // Para Nice!Nano (nRF52840), &pro_micro es un alias de &gpio0.
+    // Usando directamente &gpio0 para el pin P0.20 de la Nice!Nano.
     // P0.20 es el pin 20 en el controlador gpio0.
-    // La propiedad 'gpios' espera <&controlador_gpio pin flags>.
-    // Para salida simple, las flags pueden ser 0 o GPIO_ACTIVE_HIGH.
-    gpios = <&pro_micro 20 0>; // Usando tu nomenclatura &pro_micro para P0.20, con flags=0
+    // Flags = 0 (para salida estándar, activa alta).
+    gpios = <&gpio0 20 0>; 
 
     color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>; // Mapeo GRB para WS2812B
 };
