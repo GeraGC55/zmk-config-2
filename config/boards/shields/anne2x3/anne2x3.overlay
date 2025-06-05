@@ -69,7 +69,7 @@
         chain-length = <6>;         /* Número de LEDs */
         spi-one-frame = <0x70>;     /* Patrón de bits SPI para '1' lógico de WS2812 */
         spi-zero-frame = <0x40>;    /* Patrón de bits SPI para '0' lógico de WS2812 */
-        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>; /* Mapeo GRB */
+        color-mapping = <LED_COLOR_ID_RED LED_COLOR_ID_GREEN LED_COLOR_ID_BLUE>; /* Mapeo RGB */
     };
 };
 // --- Fin de la sección de LEDs ---
