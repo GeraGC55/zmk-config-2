@@ -28,11 +28,14 @@ if SHIELD_ANNE2X3
   config ZMK_RGB_UNDERGLOW
     default y
 
-  # Habilitar el driver PWM para WS2812
-  config PWM
+  # Habilitar el driver GPIO para WS2812 (en lugar de PWM)
+  # config PWM # Ya no es necesario para los LEDs
+  #   default y
+  # config WS2812_STRIP_PWM # Ya no es necesario
+  #   default y
+  config WS2812_STRIP # Habilitar el driver base para WS2812, el de GPIO se incluye con esto
     default y
-  config WS2812_STRIP_PWM
-    default y
+
 
   # Configuración inicial de color (Verde: H=85, S=255, B=128)
   config ZMK_RGB_UNDERGLOW_COLOR_HSB_HUE_STARTUP
