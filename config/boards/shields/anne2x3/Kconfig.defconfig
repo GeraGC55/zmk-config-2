@@ -21,7 +21,36 @@ if SHIELD_ANNE2X3
     string
     default "anne2x3"
 
-  # Todas las demás configuraciones de ZMK, RGB, drivers de LED, etc.,
-  # se manejan en anne2x3.conf o son globales de ZMK/Zephyr.
+  # 4) (Opcional) Servicio de batería por BLE
+  # config BT_BAS
+  #   default y
+
+  # --- Definiciones para la configuración RGB ---
+  # Estas opciones deben ser DEFINIDAS aquí para que anne2x3.conf pueda asignarles valor.
+  # ZMK_RGB_UNDERGLOW, SPI, LED_STRIP, WS2812_STRIP, WS2812_STRIP_SPI
+  # son habilitadas en anne2x3.conf
+
+  # Configuración inicial de color (Definiciones)
+  config ZMK_RGB_UNDERGLOW_COLOR_HSB_HUE_STARTUP
+    int "Initial Hue for RGB Underglow (0-255)"
+    default 85 # Puedes mantener el default aquí o solo el tipo si el .conf siempre lo establece
+    depends on ZMK_RGB_UNDERGLOW # Dependencia lógica
+
+  config ZMK_RGB_UNDERGLOW_COLOR_HSB_SAT_STARTUP
+    int "Initial Saturation for RGB Underglow (0-255)"
+    default 255
+    depends on ZMK_RGB_UNDERGLOW
+
+  config ZMK_RGB_UNDERGLOW_COLOR_HSB_BRT_STARTUP
+    int "Initial Brightness for RGB Underglow (0-255)"
+    default 128
+    depends on ZMK_RGB_UNDERGLOW
+
+  config ZMK_RGB_UNDERGLOW_CURRENT_EFFECT_STARTUP
+    int "Initial Effect for RGB Underglow (index)"
+    default 0
+    depends on ZMK_RGB_UNDERGLOW
+
+  # --- Fin de las definiciones para la configuración RGB ---
 
 endif
