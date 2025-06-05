@@ -5,24 +5,20 @@ if SHIELD_ANNE2X3
   # 1) Habilitar Bluetooth en Zephyr/ZMK
   config BT
     default y
-    # type: bool (implícito por 'default y')
 
   config BT_PERIPHERAL
     default y
-    # type: bool (implícito)
 
   # 2) Habilitar a ZMK como teclado BLE
   config ZMK_BLE
     default y
-    # type: bool (implícito)
 
   config ZMK_BLE_CLEAR_BONDS_ON_START
     default y
-    # type: bool (implícito)
 
   # 3) Definir el nombre que se verá en publicidad BLE
   config ZMK_KEYBOARD_NAME
-    string # Añadido tipo
+    string
     default "anne2x3"
 
   # 4) (Opcional) Servicio de batería por BLE
@@ -32,34 +28,140 @@ if SHIELD_ANNE2X3
   # --- Configuración RGB ---
   config ZMK_RGB_UNDERGLOW
     default y
-    # type: bool (implícito)
 
   # Habilitar el periférico SPI de Zephyr
   config SPI
     default y
-    # type: bool (implícito)
 
   # Habilitar el driver específico WS2812 vía SPI
-  # Si WS2812_STRIP_SPI es un símbolo que selecciona un backend para ZMK_RGB_UNDERGLOW,
-  # a veces es mejor que ZMK_RGB_UNDERGLOW lo "select" o que la opción
-  # que define el tipo de tira (como una elección global) se configure.
-  # Por ahora, mantener default y es la forma más directa si no está en un 'choice' problemático.
+  # En lugar de 'default y' directamente, vamos a depender de que ZMK_RGB_UNDERGLOW
+  # active la necesidad de un driver, y la configuración del overlay
+  # coincida con este. Si WS2812_STRIP_SPI es un 'bool' simple fuera de una 'choice'
+  # en el contexto de ZMK_RGB_UNDERGLOW, 'default y' es correcto.
+  # Si es un miembro de una 'choice' definida en drivers/led_strip/Kconfig.ws2812,
+  # esta es la línea problemática.
+  #
+  # Vamos a intentar quitar el 'default y' de WS2812_STRIP_SPI y en su lugar
+  # añadir una Kconfig que simplemente lo active si ZMK_RGB_UNDERGLOW está activo
+  # y el overlay está configurado para SPI.
+  # Sin embargo, una forma más directa es que la opción principal (ZMK_RGB_UNDERGLOW)
+  # pueda seleccionar su backend.
+  #
+  # Dado que la advertencia es específica sobre 'default on the choice symbol',
+  # y si ZMK_RGB_UNDERGLOW no tiene una forma directa de 'select' el backend SPI,
+  # puede que necesitemos que el 'default' esté en la 'choice' misma en el archivo Kconfig
+  # del driver, lo cual no podemos modificar aquí.
+  #
+  # Una alternativa es definir la configuración directamente si no es parte de una 'choice' en este contexto.
+  # La advertencia dice "choice symbol WS2812_STRIP_SPI (defined at ... drivers/led_strip/Kconfig.ws2812:22)"
+  # Esto significa que la definición original en Kconfig.ws2812 es un 'config WS2812_STRIP_SPI' dentro de un 'choice'.
+  #
+  # La solución más simple si la política de error es estricta es NO poner 'default y'
+  # en un símbolo que ya es parte de una 'choice' en su definición original.
+  # En su lugar, se espera que la elección se resuelva por otro lado (ej. menuconfig, o un select).
+  #
+  # Si ZMK_RGB_UNDERGLOW no selecciona un backend, y el `compatible` en el overlay
+  # es lo que ZMK usa para decidir qué driver usar, entonces solo necesitamos que
+  # CONFIG_WS2812_STRIP_SPI esté habilitado.
+  #
+  # Vamos a intentar una sintaxis que simplemente lo habilite sin 'default',
+  # asumiendo que el 'if SHIELD_ANNE2X3' ya lo condiciona.
+  # Si no, la alternativa es que tu `prj.conf` o un archivo global
+  # necesite establecer la elección del driver WS2812.
+
+  config WS2812_STRIP_SPI # Intentar sin 'default y' explícito aquí
+    bool # Solo declarar el tipo, confiando en que el sistema lo active si es necesario
+         # debido al 'compatible' en el overlay y ZMK_RGB_UNDERGLOW.
+         # O, si debe ser explícito:
+         # depends on ZMK_RGB_UNDERGLOW && SHIELD_ANNE2X3 (implícito por la estructura)
+         # default y # Esta es la línea que causa la advertencia.
+
+  # Para forzar su habilitación si es un bool simple y no se activa automáticamente:
+  # Esto es lo que ya teníamos, pero causa la advertencia.
+  # config WS2812_STRIP_SPI
+  #   default y
+  #   depends on ZMK_RGB_UNDERGLOW # Asegurarse de que solo se active si RGB está encendido
+
+  # Como la advertencia es sobre 'default on a choice symbol', y no podemos modificar
+  # la definición de la 'choice' en sí, lo que se puede hacer es
+  # intentar que ZMK_RGB_UNDERGLOW la seleccione.
+  # Buscando en ZMK Kconfig: ZMK_RGB_UNDERGLOW no parece tener un 'select' para el driver.
+
+  # El problema es que Kconfig es declarativo. Si drivers/led_strip/Kconfig.ws2812:22
+  # define WS2812_STRIP_SPI dentro de una "choice", entonces *esa choice* debe tener
+  # un default, o el usuario debe poder elegir en menuconfig.
+  # Poner 'default y' en un 'config' que es miembro de una 'choice' es lo que da la advertencia.
+
+  # Si la política es tratar esta advertencia como error, y no podemos cambiar la política,
+  # la única forma de evitar la advertencia es *no* poner `default y` aquí.
+  # Esto significa que `CONFIG_WS2812_STRIP_SPI` podría no habilitarse.
+  #
+  # La solución real suele ser:
+  # 1. Que la `choice` en `drivers/led_strip/Kconfig.ws2812` tenga un `default WS2812_STRIP_SPI`
+  #    (no podemos cambiar esto desde el shield).
+  # 2. Que una opción de más alto nivel (como `CONFIG_ZMK_RGB_UNDERGLOW`) haga `select CONFIG_WS2812_STRIP_SPI`.
+  #
+  # Lo que podemos intentar es NO definir `default y` para `WS2812_STRIP_SPI` aquí.
+  # Y confiar en que el `compatible = "worldsemi,ws2812-spi"` sea suficiente para que el build
+  # sepa que necesita compilar ese driver si `ZMK_RGB_UNDERGLOW` está activo.
+  # Si esto resulta en que el driver no se compile (y los LEDs no funcionen),
+  # entonces la advertencia de Kconfig es un problema más profundo de cómo ZMK maneja esta selección.
+
+  # Probemos esto:
+  # Dejamos WS2812_STRIP_SPI sin 'default y' para evitar la advertencia.
+  # Si esto no funciona (ej. el driver no se compila), se necesitaría un prj.conf a nivel de usuario
+  # para establecer `CONFIG_WS2812_STRIP_SPI=y` de una manera que Kconfig no considere una advertencia.
+  # (usualmente, establecerlo directamente en un prj.conf o un .conf de la placa sí funciona para 'choice members').
+  # Como preferías evitar prj.conf, esta es una limitación.
+
+  # Vamos a mantener la habilitación explícita por ahora, ya que quitarla podría
+  # simplemente hacer que los LEDs no funcionen sin un error de compilación claro.
+  # La advertencia de Kconfig es el problema a resolver para la *compilación*.
+  # Si la única forma es suprimir la advertencia (no recomendado) o usar un prj.conf,
+  # es una decisión de flujo de trabajo.
+
+  # La advertencia dice: "default on the choice symbol ... will have no effect"
+  # Esto podría significar que NUESTRO `default y` es ignorado, y la elección se
+  # resuelve de otra manera (quizás a NINGÚN driver WS2812 si no hay otro default).
+  # Si es ignorado y no causa error, pero los LEDs no funcionan, es un problema.
+  # Si es ignorado Y causa error por la política de advertencias, es un problema de compilación.
+
+  # Por ahora, la única forma de intentar pasar la compilación si la política de error es estricta
+  # y la advertencia no se puede evitar de otra manera, sería que el sistema
+  # *no* trate esta advertencia como fatal. No podemos controlar eso.
+
+  # Vamos a asumir que la advertencia es el problema y que `default y` *sí* tiene efecto
+  # para habilitar el código, pero Kconfig se queja de la forma.
+  # La única opción que se me ocurre para *intentar* evitar la advertencia y aun así habilitar
+  # la opción es a través de una dependencia, pero 'default' sigue siendo problemático.
+
+  # Lo que sí podemos hacer es eliminar nuestra línea `config WS2812_STRIP_SPI default y`
+  # y añadir una línea en un archivo `.conf` (que se parece a `prj.conf` pero es específico
+  # del shield y a veces el sistema lo recoge de forma diferente).
+  # Por ejemplo, crear `config/boards/shields/anne2x3/anne2x3.conf` con:
+  # CONFIG_WS2812_STRIP_SPI=y
+  #
+  # Esto es lo más cercano a no usar un `prj.conf` a nivel de usuario.
+
+  # Antes de eso, vamos a probar una última cosa en Kconfig.defconfig:
+  # Simplemente depender de ZMK_RGB_UNDERGLOW. Kconfig a veces es más permisivo si ve una dependencia.
   config WS2812_STRIP_SPI
-    default y
-    # type: bool (implícito)
+    # bool "WS2812 SPI Strip support" # No necesita bool si solo default
+    default y if ZMK_RGB_UNDERGLOW # Solo activa esto si ZMK_RGB_UNDERGLOW está activo.
+                                   # Esto podría cambiar cómo Kconfig ve el 'default'.
 
   # Configuración inicial de color
   config ZMK_RGB_UNDERGLOW_COLOR_HSB_HUE_STARTUP
-    int "Initial Hue for RGB Underglow (0-255)" # Añadido tipo y descripción
+    int "Initial Hue for RGB Underglow (0-255)"
     default 85
   config ZMK_RGB_UNDERGLOW_COLOR_HSB_SAT_STARTUP
-    int "Initial Saturation for RGB Underglow (0-255)" # Añadido tipo y descripción
+    int "Initial Saturation for RGB Underglow (0-255)"
     default 255
   config ZMK_RGB_UNDERGLOW_COLOR_HSB_BRT_STARTUP
-    int "Initial Brightness for RGB Underglow (0-255)" # Añadido tipo y descripción
+    int "Initial Brightness for RGB Underglow (0-255)"
     default 128
   config ZMK_RGB_UNDERGLOW_CURRENT_EFFECT_STARTUP
-    int "Initial Effect for RGB Underglow (index)" # Añadido tipo y descripción
+    int "Initial Effect for RGB Underglow (index)"
     default 0
 
   # --- Fin de la configuración RGB ---
