@@ -14,37 +14,14 @@ if SHIELD_ANNE2X3
     default y
 
   config ZMK_BLE_CLEAR_BONDS_ON_START
-    default y
+    default n
 
   # 3) Definir el nombre que se verá en publicidad BLE
   config ZMK_KEYBOARD_NAME
     string
     default "anne2x3"
 
-  # 4) (Opcional) Servicio de batería por BLE
-  # config BT_BAS
-  #   default y
-
-  # --- Configuración RGB ---
-  config ZMK_RGB_UNDERGLOW
-    default y
-
-  # Habilitar el periférico SPI de Zephyr
-  config SPI
-    default y
-
-  # La configuración de CONFIG_WS2812_STRIP_SPI y otros backends WS2812
-  # se maneja ahora en anne2x3.conf para asegurar la correcta selección de la 'choice'.
-
-  # Configuración inicial de color
-  config ZMK_RGB_UNDERGLOW_COLOR_HSB_HUE_STARTUP
-    int "Initial Hue for RGB Underglow (0-255)"
-    default 85
-  # ... (resto de las configs HSB y EFFECT sin cambios) ...
-  config ZMK_RGB_UNDERGLOW_CURRENT_EFFECT_STARTUP
-    int "Initial Effect for RGB Underglow (index)"
-    default 0
-
-  # --- Fin de la configuración RGB ---
+  # Todas las demás configuraciones de ZMK, RGB, drivers de LED, etc.,
+  # se manejan en anne2x3.conf o son globales de ZMK/Zephyr.
 
 endif
