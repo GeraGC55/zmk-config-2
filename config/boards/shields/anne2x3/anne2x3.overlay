@@ -24,21 +24,54 @@
 };
 
 // --- Sección para LEDs WS2812B ---
+&pwm0 { // Aseguramos que pwm0 esté disponible y lo configuramos
+    status = "okay";
+    pinctrl-0 = <&pwm0_default_alt>; // Referencia a la definición pinctrl del pin P0.20 para pwm0
+    pinctrl-names = "default";
+};
+
+/*
+ * Se añade una definición de pinctrl para el pin P0.20 (PWM0_OUT0)
+ * para la nice_nano_v2. Los nombres de pinctrl pueden variar,
+ * pero usualmente siguen un patrón como <periferico>_<funcion>_<pin>.
+ * nrf_pwm_P0_20_ALT1 es un ejemplo, podría ser también pwm0_default o similar.
+ * Lo importante es que el pin P0.20 se asigne a la función PWM.
+ *
+ * El DTS de nice_nano_v2 ya suele tener:
+ * pwm0_default: pwm0_default {
+ * group1 {
+ * psels = <NRF_PSEL(PWM_OUT0, 0, 17)>, // P0.17
+ * <NRF_PSEL(PWM_OUT1, 0, 1)>,  // P0.01 (LED Azul)
+ * <NRF_PSEL(PWM_OUT2, 1, 9)>,  // P1.09 (LED Rojo)
+ * <NRF_PSEL(PWM_OUT3, 0, 20)>; // P0.20
+ * };
+ * };
+ * Si esta es la estructura en nice_nano_v2.dts, P0.20 ya está en el grupo por defecto como PWM_OUT3.
+ * El driver ws2812-pwm usará el primer canal disponible del PWM especificado.
+ *
+ * Si P0.20 está en pwm0_default como OUT3, no necesitamos un pinctrl separado aquí,
+ * pero debemos asegurarnos que pwm0 está "okay".
+ *
+ * Considerando el error, vamos a definir explícitamente el pinctrl para el pin que queremos usar
+ * y que no choque con los usos por defecto de la placa si es necesario.
+ */
 &pinctrl {
-    ws2812_default: ws2812_default {
+    // Este es un grupo de pinctrl específico para el pin P0.20 asignado a una función de PWM.
+    // El nombre "pwm0_default_alt" es para evitar colisiones si "pwm0_default" ya está en uso.
+    pwm0_default_alt: pwm0_default_alt {
         group1 {
-            psels = <NRF_PSEL(PWM_OUT0, 0, 20)>; // P0.20 para Nice!Nano (Arduino pin 20)
+            psels = <NRF_PSEL(PWM_OUT0, 0, 20)>; // P0.20 como salida del canal 0 de PWM0
         };
     };
 };
+
 
 led_strip: ws2812 {
     compatible = "worldsemi,ws2812-pwm";
     label = "WS2812";
     chain-length = <6>; /* Número de LEDs */
-    pwm = <&pwm0>;
-    pinctrl-0 = <&ws2812_default>;
-    pinctrl-names = "default";
+    pwm = <&pwm0>;      // Esto debería ser correcto si pwm0 está "okay"
+    // El pinctrl se maneja a nivel del nodo &pwm0
     color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>; // Mapeo GRB para WS2812B
 };
 // --- Fin de la sección de LEDs ---
